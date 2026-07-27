@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zen · Social</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/feather/4.29.0/feather.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f5f7f8;
+      color: #1e293b;
+      display: flex;
+      justify-content: center;
+      padding: 0 0 80px 0;
+    }
+    .app-container {
+      max-width: 1000px;
+      width: 100%;
+      background: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .top-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #eef2f4;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .logo { font-size: 24px; font-weight: 300; color: #0f172a; }
+    .logo span { font-weight: 500; }
+    .feed { flex: 1; padding: 12px 16px 20px; }
+    .create-post-card {
+      background: white;
+      border: 1px solid #eef2f4;
+      border-radius: 20px;
+      padding: 16px 18px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: box-shadow 0.15s;
+    }
+    .create-post-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+    .avatar-placeholder {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+      color: #475569;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    .create-post-card .fake-input {
+      color: #94a3b8;
+      font-size: 15px;
+      flex: 1;
+    }
+    .post {
+      background: white;
+      border: 1px solid #eef2f4;
+      border-radius: 20px;
+      padding: 18px 16px 12px;
+      margin-bottom: 20px;
+    }
+    .post-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .post-header .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #d9e2ec;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+      color: #1e293b;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .post-user { font-weight: 600; font-size: 15px; }
+    .post-user span { font-weight: 400; color: #64748b; font-size: 13px; margin-left: 6px; }
+    .post-time { margin-left: auto; color: #94a3b8; font-size: 13px; }
+    .post-content { font-size: 15px; line-height: 1.6; margin: 4px 0 12px 0; color: #0f172a; }
+    .post-content img { max-width: 100%; border-radius: 16px; margin-top: 10px; }
+    .post-actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding-top: 10px;
+      border-top: 1px solid #f1f5f9;
+      margin-top: 6px;
+    }
+    .post-actions button {
+      background: none;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      color: #475569;
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 30px;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .post-actions button:hover { background: #f1f5f9; color: #0f172a; }
+    .post-actions button i { font-size: 18px; }
+    .post-actions .liked { color: #e11d48; }
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid #eef2f4;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0 env(safe-area-inset-bottom, 12px) 0;
+      z-index: 20;
+    }
+    .bottom-nav a {
+      color: #94a3b8;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 11px;
+      gap: 2px;
+      padding: 2px 12px;
+      cursor: pointer;
+    }
+    .bottom-nav a i { font-size: 22px; }
+    .bottom-nav a.active { color: #0f172a; }
+    
+    /* Auth Forms */
+    .auth-container {
+      max-width: 400px;
+      margin: 60px auto;
+      padding: 40px;
+      background: white;
+      border-radius: 28px;
+      border: 1px solid #eef2f4;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+    }
+    .auth-container h1 { font-weight: 300; font-size: 32px; margin-bottom: 8px; }
+    .auth-container p { color: #94a3b8; margin-bottom: 24px; }
+    .auth-container input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 15px;
+      margin-bottom: 12px;
+      font-family: inherit;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .auth-container input:focus { border-color: #94a3b8; }
+    .auth-container button {
+      width: 100%;
+      padding: 12px;
+      background: #0f172a;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s;
+    }
+    .auth-container button:hover { background: #1e293b; }
+    .auth-container .switch {
+      text-align: center;
+      margin-top: 16px;
+      color: #64748b;
+      font-size: 14px;
+    }
+    .auth-container .switch a {
+      color: #0f172a;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .auth-container .error {
+      color: #dc2626;
+      font-size: 14px;
+      margin-bottom: 12px;
+      background: #fee2e2;
+      padding: 8px 12px;
+      border-radius: 8px;
+      display: none;
+    }
+    
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 30;
+      padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: white;
+      border-radius: 28px;
+      max-width: 480px;
+      width: 100%;
+      padding: 28px 24px 24px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+      animation: modalFade 0.2s ease;
+    }
+    @keyframes modalFade {
+      0% { opacity: 0; transform: scale(0.96) translateY(12px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-box h2 { font-weight: 400; font-size: 22px; margin-bottom: 16px; }
+    .modal-box textarea {
+      width: 100%;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-family: inherit;
+      font-size: 15px;
+      resize: vertical;
+      min-height: 100px;
+      outline: none;
+    }
+    .modal-box textarea:focus { border-color: #94a3b8; }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .modal-actions button {
+      padding: 10px 24px;
+      border-radius: 40px;
+      border: none;
+      font-weight: 500;
+      font-size: 15px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .modal-actions .btn-cancel { background: #f1f5f9; color: #475569; }
+    .modal-actions .btn-cancel:hover { background: #e2e8f0; }
+    .modal-actions .btn-post { background: #0f172a; color: white; }
+    .modal-actions .btn-post:hover { background: #1e293b; }
+    
+    .comment-section {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #f1f5f9;
+      display: none;
+    }
+    .comment-section.open { display: block; }
+    .comment-input-wrap {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .comment-input-wrap input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 30px;
+      font-size: 14px;
+      outline: none;
+      font-family: inherit;
+    }
+    .comment-input-wrap input:focus { border-color: #94a3b8; }
+    .comment-input-wrap button {
+      background: #0f172a;
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 30px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .comment-list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .comment-item {
+      font-size: 14px;
+      background: #f8fafc;
+      padding: 8px 14px;
+      border-radius: 30px;
+    }
+    .comment-item strong { font-weight: 600; color: #0f172a; margin-right: 6px; }
+    
+    .stories-container {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      padding: 12px 4px 16px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #eef2f4;
+    }
+    .story-ring {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      padding: 3px;
+      background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+      flex-shrink: 0;
+    }
+    .story-ring img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 2px solid white;
+      object-fit: cover;
+      background: #e2e8f0;
+    }
+    .story-username {
+      font-size: 11px;
+      text-align: center;
+      color: #64748b;
+      margin-top: 4px;
+      white-space: nowrap;
+      max-width: 68px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .story-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+    
+    .hidden { display: none !important; }
+    .verified-badge {
+      color: #1d9bf0;
+      font-size: 14px;
+      margin-left: 2px;
+    }
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #94a3b8;
+    }
+    .inline-flex { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    
+    .desktop-sidebar { display: none; }
+    @media (min-width: 768px) {
+      body { padding: 0; background: #f1f4f6; }
+      .app-container {
+        flex-direction: row;
+        min-height: 100vh;
+        max-width: 1200px;
+        margin: 0 auto;
+        background: transparent;
+        box-shadow: none;
+        gap: 24px;
+        padding: 24px;
+      }
+      .desktop-sidebar {
+        display: flex;
+        flex-direction: column;
+        width: 200px;
+        background: white;
+        border-radius: 28px;
+        padding: 28px 16px;
+        height: fit-content;
+        position: sticky;
+        top: 24px;
+        border: 1px solid #eef2f4;
+        flex-shrink: 0;
+      }
+      .desktop-sidebar .logo { font-size: 28px; margin-bottom: 32px; padding-left: 8px; }
+      .desktop-sidebar nav { display: flex; flex-direction: column; gap: 6px; }
+      .desktop-sidebar nav a {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 10px 12px;
+        border-radius: 40px;
+        color: #475569;
+        text-decoration: none;
+        font-size: 15px;
+        transition: all 0.15s;
+        cursor: pointer;
+      }
+      .desktop-sidebar nav a i { font-size: 20px; width: 24px; }
+      .desktop-sidebar nav a:hover { background: #f1f5f9; color: #0f172a; }
+      .desktop-sidebar nav a.active { background: #f1f5f9; color: #0f172a; font-weight: 500; }
+      .feed { flex: 1; padding: 0; max-width: 600px; margin: 0 auto; width: 100%; }
+      .top-header { display: none; }
+      .bottom-nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container" id="app">
+  <!-- Auth Screen -->
+  <div id="authScreen" class="auth-container">
+    <h1>zen<span style="font-weight:500;">.</span></h1>
+    <p>Connect without the noise</p>
+    <div id="authError" class="error"></div>
+    
+    <div id="loginForm">
+      <input type="email" id="loginEmail" placeholder="Email" />
+      <input type="password" id="loginPassword" placeholder="Password" />
+      <button id="loginBtn">Sign In</button>
+      <div class="switch">Don't have an account? <a id="showSignup">Sign up</a></div>
+    </div>
+    
+    <div id="signupForm" class="hidden">
+      <input type="text" id="signupUsername" placeholder="Username" />
+      <input type="email" id="signupEmail" placeholder="Email" />
+      <input type="password" id="signupPassword" placeholder="Password" />
+      <input type="text" id="signupDisplayName" placeholder="Display Name (optional)" />
+      <button id="signupBtn">Create Account</button>
+      <div class="switch">Already have an account? <a id="showLogin">Sign in</a></div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="mainApp" class="hidden" style="width:100%;">
+    <aside class="desktop-sidebar">
+      <div class="logo">zen<span>.</span></div>
+      <nav>
+        <a class="active" data-tab="feed"><i data-feather="home"></i> Home</a>
+        <a data-tab="profile"><i data-feather="user"></i> Profile</a>
+        <a data-tab="messages"><i data-feather="message-circle"></i> Messages</a>
+        <a id="logoutBtn" style="margin-top:20px;border-top:1px solid #eef2f4;padding-top:16px;color:#dc2626;">
+          <i data-feather="log-out"></i> Logout
+        </a>
+      </nav>
+    </aside>
+
+    <main class="feed">
+      <div class="top-header">
+        <div class="logo">zen<span>.</span></div>
+        <div style="display:flex;gap:16px;align-items:center;">
+          <span id="userBadge" style="font-size:13px;color:#64748b;"></span>
+        </div>
+      </div>
+
+      <!-- Stories -->
+      <div id="storiesContainer" class="stories-container"></div>
+
+      <!-- Create Post -->
+      <div class="create-post-card" id="openModalBtn">
+        <div class="avatar-placeholder" id="userAvatar">Z</div>
+        <div class="fake-input">Share your thoughts, calmly...</div>
+      </div>
+
+      <!-- Feed -->
+      <div id="feedContainer"><div class="loading">Loading...</div></div>
+    </main>
+  </div>
+</div>
+
+<!-- Create Post Modal -->
+<div class="modal-overlay" id="postModal">
+  <div class="modal-box">
+    <h2>New moment</h2>
+    <textarea id="postContentInput" placeholder="What's on your mind?" rows="4"></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="closeModalBtn">Cancel</button>
+      <button class="btn-post" id="submitPostBtn">Post</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav" id="bottomNav">
+  <a class="active" data-tab="feed"><i data-feather="home"></i></a>
+  <a data-tab="feed"><i data-feather="search"></i></a>
+  <a id="bottomPostBtn"><i data-feather="plus-circle"></i></a>
+  <a data-tab="messages"><i data-feather="message-circle"></i></a>
+  <a data-tab="profile"><i data-feather="user"></i></a>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.1/feather.min.js"></script>
+<script>
+// ============ API CLIENT ============
+const API_URL = 'http://localhost:5000/api';
+let token = localStorage.getItem('token');
+let currentUser = null;
+
+async function apiCall(endpoint, options = {}) {
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
+    headers
+  });
+  
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Something went wrong');
+  }
+  return data;
+}
+
+// ============ AUTH ============
+document.getElementById('showSignup').addEventListener('click', () => {
+  document.getElementById('loginForm').classList.add('hidden');
+  document.getElementById('signupForm').classList.remove('hidden');
+});
+
+document.getElementById('showLogin').addEventListener('click', () => {
+  document.getElementById('signupForm').classList.add('hidden');
+  document.getElementById('loginForm').classList.remove('hidden');
+});
+
+document.getElementById('signupBtn').addEventListener('click', async () => {
+  const username = document.getElementById('signupUsername').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const password = document.getElementById('signupPassword').value;
+  const display_name = document.getElementById('signupDisplayName').value.trim();
+  
+  if (!username || !email || !password) {
+    showAuthError('All fields are required');
+    return;
+  }
+  
+  try {
+    const data = await apiCall('/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify({ username, email, password, display_name })
+    });
+    token = data.token;
+    currentUser = data.user;
+    localStorage.setItem('token', token);
+    loginSuccess();
+  } catch (err) {
+    showAuthError(err.message);
+  }
+});
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  
+  if (!email || !password) {
+    showAuthError('Email and password required');
+    return;
+  }
+  
+  try {
+    const data = await apiCall('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password })
+    });
+    token = data.token;
+    currentUser = data.user;
+    localStorage.setItem('token', token);
+    loginSuccess();
+  } catch (err) {
+    showAuthError(err.message);
+  }
+});
+
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function loginSuccess() {
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('mainApp').classList.remove('hidden');
+  feather.replace();
+  loadFeed();
+  loadStories();
+  updateUI();
+}
+
+// Auto-login
+if (token) {
+  (async () => {
+    try {
+      currentUser = await apiCall('/auth/me');
+      loginSuccess();
+    } catch (e) {
+      localStorage.removeItem('token');
+      token = null;
+    }
+  })();
+}
+
+// ============ LOGOUT ============
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  localStorage.removeItem('token');
+  token = null;
+  currentUser = null;
+  document.getElementById('mainApp').classList.add('hidden');
+  document.getElementById('authScreen').classList.remove('hidden');
+});
+
+// ============ UI HELPERS ============
+function updateUI() {
+  if (currentUser) {
+    document.getElementById('userBadge').textContent = `@${currentUser.username}`;
+    document.getElementById('userAvatar').textContent = (currentUser.display_name || currentUser.username).charAt(0).toUpperCase();
+  }
+}
+
+// ============ STORIES ============
+async function loadStories() {
+  try {
+    const stories = await apiCall('/stories/feed');
+    const container = document.getElementById('storiesContainer');
+    if (!stories || stories.length === 0) {
+      container.innerHTML = `<div style="color:#94a3b8;padding:8px 0;font-size:14px;">No stories from friends</div>`;
+      return;
+    }
+    container.innerHTML = stories.map(group => `
+      <div class="story-item">
+        <div class="story-ring">
+          <img src="${group.user.avatar || 'https://placehold.co/68x68/e2e8f0/475569?text='+group.user.display_name.charAt(0)}" />
+        </div>
+        <div class="story-username">${group.user.display_name}</div>
+      </div>
+    `).join('');
+  } catch (e) {
+    console.error('Stories error:', e);
+  }
+}
+
+// ============ FEED ============
+async function loadFeed() {
+  const container = document.getElementById('feedContainer');
+  try {
+    const posts = await apiCall('/posts/feed');
+    
+    if (!posts || posts.length === 0) {
+      container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:#94a3b8;">
+        <p style="font-size:30px;">🌱</p><p>Follow people to see their posts here!</p>
+      </div>`;
+      return;
+    }
+    
+    container.innerHTML = posts.map(post => `
+      <div class="post" data-id="${post.id}">
+        <div class="post-header">
+          <div class="avatar">${(post.display_name || post.username).charAt(0)}</div>
+          <div class="post-user">
+            ${post.display_name || post.username}
+            ${post.is_verified ? '<span class="verified-badge">✓</span>' : ''}
+            <span>@${post.username}</span>
+          </div>
+          <div class="post-time">${timeAgo(post.created_at)}</div>
+        </div>
+        <div class="post-content">
+          ${post.content}
+          ${post.image ? `<img src="${post.image}" />` : ''}
+        </div>
+        <div class="post-actions">
+          <button class="like-btn ${post.is_liked ? 'liked' : ''}" data-id="${post.id}">
+            <i data-feather="${post.is_liked ? 'heart' : 'heart'}"></i>
+            <span class="like-count">${post.likes_count || 0}</span>
+          </button>
+          <button class="comment-toggle" data-id="${post.id}">
+            <i data-feather="message-circle"></i>
+            <span>${post.comments_count || 0}</span>
+          </button>
+          <button><i data-feather="share-2"></i></button>
+        </div>
+        
+        <div class="comment-section" id="commentSection-${post.id}">
+          <div class="comment-input-wrap">
+            <input type="text" placeholder="Add a comment..." class="comment-input" data-id="${post.id}" />
+            <button class="comment-submit" data-id="${post.id}">Reply</button>
+          </div>
+          <div class="comment-list" id="commentList-${post.id}">
+            ${post.recent_comments && post.recent_comments.map(c => 
+              `<div class="comment-item"><strong>${c.display_name || c.username}</strong> ${c.content}</div>`
+            ).join('')}
+          </div>
+        </div>
+      </div>
+    `).join('');
+    
+    feather.replace();
+    
+    // Like buttons
+    document.querySelectorAll('.like-btn').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const postId = this.dataset.id;
+        try {
+          const result = await apiCall(`/posts/${postId}/like`, { method: 'POST' });
+          loadFeed(); // Refresh feed
+        } catch(e) { console.error(e); }
+      });
+    });
+    
+    // Comment toggle
+    document.querySelectorAll('.comment-toggle').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const section = document.getElementById(`commentSection-${this.dataset.id}`);
+        if (section) section.classList.toggle('open');
+      });
+    });
+    
+    // Comment submit
+    document.querySelectorAll('.comment-submit').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const postId = this.dataset.id;
+        const input = document.querySelector(`.comment-input[data-id="${postId}"]`);
+        const content = input.value.trim();
+        if (!content) return;
+        try {
+          await apiCall(`/posts/${postId}/comments`, {
+            method: 'POST',
+            body: JSON.stringify({ content })
+          });
+          input.value = '';
+          loadFeed();
+        } catch(e) { console.error(e); }
+      });
+    });
+    
+  } catch (e) {
+    container.innerHTML = `<div style="color:#dc2626;padding:20px;">Error loading feed: ${e.message}</div>`;
+  }
+}
+
+// ============ CREATE POST ============
+document.getElementById('openModalBtn').addEventListener('click', () => {
+  document.getElementById('postModal').classList.add('open');
+});
+
+document.getElementById('bottomPostBtn').addEventListener('click', () => {
+  document.getElementById('postModal').classList.add('open');
+});
+
+document.getElementById('closeModalBtn').addEventListener('click', () => {
+  document.getElementById('postModal').classList.remove('open');
+});
+
+document.getElementById('submitPostBtn').addEventListener('click', async () => {
+  const content = document.getElementById('postContentInput').value.trim();
+  if (!content) return;
+  
+  try {
+    await apiCall('/posts', {
+      method: 'POST',
+      body: JSON.stringify({ content })
+    });
+    document.getElementById('postContentInput').value = '';
+    document.getElementById('postModal').classList.remove('open');
+    loadFeed();
+  } catch(e) {
+    alert('Error posting: ' + e.message);
+  }
+});
+
+// ============ TAB NAVIGATION ============
+document.querySelectorAll('[data-tab]').forEach(el => {
+  el.addEventListener('click', function(e) {
+    e.preventDefault();
+    const tab = this.dataset.tab;
+    if (tab === 'profile') {
+      alert('Profile page coming soon! Check the backend API for profile endpoints.');
+    } else if (tab === 'messages') {
+      alert('Messaging coming soon! Use the WebSocket API for real-time chat.');
+    } else {
+      loadFeed();
+    }
+  });
+});
+
+// ============ HELPERS ============
+function timeAgo(dateStr) {
+  const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  return `${Math.floor(diff/86400)}d ago`;
+}
+
+// ============ INIT ============
+console.log('🌿 Zen Social App loaded');
+console.log('API URL:', API_URL);
+console.log('Token:', token ? '✅ Set' : '❌ Not set');
+</script>
+</body>
+</html>
